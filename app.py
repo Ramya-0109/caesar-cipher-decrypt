@@ -23,7 +23,7 @@ st.title("🔓 Decryption Tool")
 st.subheader("Enter Encrypted Text")
 encrypted_text = st.text_area("Paste your encrypted text here...", height=150)
 
-# Action buttons
+# Action buttons side by side
 col1, col2 = st.columns(2)
 with col1:
     decipher_btn = st.button("🔑 Decipher (Caesar Cipher)")
@@ -33,7 +33,6 @@ with col2:
 # Output section
 st.subheader("Decrypted Text")
 
-# Placeholder for result
 result = ""
 
 if decipher_btn and encrypted_text:
@@ -43,12 +42,26 @@ if base64_btn and encrypted_text:
     result = decode_base64(encrypted_text)
 
 if result:
-    # Copy button above the text
-    copy_col, _ = st.columns([1,5])
-    with copy_col:
-        if st.button("📋 Copy"):
-            st.code(result, language=None)
-            st.info("Copy the above text manually (Cmd+C / Ctrl+C)")
-
-    # Show decrypted text (full height)
-    st.text_area("Result", value=result, height=len(result.splitlines())*25 + 50, disabled=True)
+    # Container for output with copy button on top right
+    with st.container():
+        # Use columns to align the copy button to the right
+        copy_col, empty_col = st.columns([1, 20])
+        with copy_col:
+            if st.button("📋 Copy"):
+                st.experimental_set_query_params()  # Hack to clear focus
+                st.experimental_rerun()
+                # Actually copy text to clipboard via JS (hacky but works)
+                st.write(
+                    f"""
+                    <script>
+                    navigator.clipboard.writeText(`{result.replace("`", "'")}`);
+                    </script>
+                    """,
+                    unsafe_allow_html=True,
+                )
+                st.success("Copied to clipboard!")
+        
+        # Large scrollable text area with the result
+        st.text_area("Result", value=result, height=300, disabled=True)
+else:
+    st.info("Please enter encrypted text and select an action above.")
