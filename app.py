@@ -1,29 +1,54 @@
-
 import streamlit as st
+import base64
 
-# Caesar cipher decryption function
-def decrypt_text(cipher_text, payload):
+# Caesar cipher decryption (fixed offset 5)
+def decrypt_text(cipher_text):
+    payload = 5
     return ''.join(chr(ord(ch) - payload) for ch in cipher_text)
 
+# Base64 decode
+def decode_base64(encoded_text):
+    try:
+        decoded_bytes = base64.b64decode(encoded_text)
+        return decoded_bytes.decode('utf-8', errors='ignore')
+    except Exception as e:
+        return f"Error decoding Base64: {e}"
+
 # Page settings
-st.set_page_config(page_title="Caesar Cipher Decryptor", layout="centered")
+st.set_page_config(page_title="Decryption Tool", layout="centered")
 
-# Title
-st.title("🔓 Caesar Cipher Decryptor")
+st.title("🔓 Decryption Tool")
 
-# Top section: Input
+# Input section
 st.subheader("Enter Encrypted Text")
-encrypted_text = st.text_area("Encrypted text here...", height=150)
-offset = st.number_input("Cipher offset", min_value=1, value=5)
+encrypted_text = st.text_area("Paste your encrypted text here...", height=150)
 
-# Bottom section: Output
+# Action buttons
+col1, col2 = st.columns(2)
+with col1:
+    decipher_btn = st.button("🔑 Decipher (Caesar Cipher)")
+with col2:
+    base64_btn = st.button("🗝️ Decode Base64")
+
+# Output section
 st.subheader("Decrypted Text")
-decrypted_text = ""
-if encrypted_text:
-    decrypted_text = decrypt_text(encrypted_text, offset)
-    st.text_area("Result", value=decrypted_text, height=150, disabled=True)
 
-    # Copy button
-    if st.button("📋 Copy to Clipboard"):
-        st.code(decrypted_text, language=None)
-        st.info("Copy the above text manually (press Cmd + C or Ctrl + C)")
+# Placeholder for result
+result = ""
+
+if decipher_btn and encrypted_text:
+    result = decrypt_text(encrypted_text)
+
+if base64_btn and encrypted_text:
+    result = decode_base64(encrypted_text)
+
+if result:
+    # Copy button above the text
+    copy_col, _ = st.columns([1,5])
+    with copy_col:
+        if st.button("📋 Copy"):
+            st.code(result, language=None)
+            st.info("Copy the above text manually (Cmd+C / Ctrl+C)")
+
+    # Show decrypted text (full height)
+    st.text_area("Result", value=result, height=len(result.splitlines())*25 + 50, disabled=True)
